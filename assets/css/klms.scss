@@ -12,53 +12,38 @@ body {
 }
 
 h1 {
-  background: linear-gradient(60deg, #ff6a3f, #df1238);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  font-family: Montserrat Alternates;
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
-  font-size: 3.8rem;
-  font-style: normal;
-  line-height: 1.2;
-  letter-spacing: -0.05em;
-  text-transform: none;
+  font-size: clamp(40px, 4.8vw, 68px);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
   margin-bottom: 1.5rem;
 }
 
 h2 {
-  background: linear-gradient(60deg, #ff6a3f, #df1238);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  font-family: Montserrat Alternates;
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
-  font-size: 2.5rem;
-  font-style: normal;
-  line-height: 1.2;
-  letter-spacing: 0em;
-  text-transform: none;
-  margin-bottom: 1.5rem;
+  font-size: 40px;
+  line-height: 0.95;
+  margin-bottom: 1rem;
 }
 
 
 h3 {
-  font-family: Montserrat Alternates;
+  color: #f3eff6;
+  font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
-  font-size: 3rem;
-  font-style: normal;
-  line-height: 1.2;
-  letter-spacing: 0em;
-  text-transform: none;
-  margin-bottom: 1.5rem;
+  font-size: 28px;
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
 }
 
 h4 {
-  background: linear-gradient(60deg, #ff6a3f, #df1238);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  font-family: Montserrat Alternates;
+  color: #fdd901;
+  font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
   font-size: 2rem;
   font-style: normal;
@@ -124,11 +109,8 @@ footer,
 }
 
 .fbfpoptitle {
-  background: linear-gradient(60deg, #ff6a3f, #df1238);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent !important;
-  font-family: Montserrat Alternates;
+  color: #fdd901 !important;
+  font-family: Gudea, -apple-system, sans-serif;
   font-weight: 700;
   font-size: 2rem;
   font-style: normal;
@@ -148,14 +130,14 @@ footer,
 
 .navbar {
   font-size: 1rem !important;
-  font-family: Montserrat Alternates !important;
+  font-family: Gudea, -apple-system, sans-serif !important;
   font-weight: 700 !important;
 }
 
 @include bootstrap.media-breakpoint-down(lg) {
   .navbar {
     font-size: 1rem !important;
-    font-family: Montserrat Alternates !important;
+    font-family: Gudea, -apple-system, sans-serif !important;
     font-weight: 700 !important;
     background-color: #000;
   }
