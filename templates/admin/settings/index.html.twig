@@ -3,40 +3,72 @@
 {% block title %}KLMS - Admin{% endblock %}
 {% block siteheading %}<i class="fas fa-th-large"></i> Einstellungen{% endblock %}
 {% block main %}
-    {% for category, kk in keys %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h3>{{ category }}</h3>
-                <table class="table">
-                    <tbody>
-                    {% for key in kk %}
-                        {% set SettingType = enum('\\App\\Service\\SettingType') %}
-                        {% set value = service.get(key) %}
-                        {% set type = service.getType(key) %}
-                        {% set desc = service.getDescription(key) %}
-                        <tr id="{{ key }}">
-                            <td style="width: 25%">
-                                <a href="{{ path('admin_setting_edit', {'key' : key}) }}" {% if type != SettingType.HTML and type != SettingType.File %}data-toggle="ajaxModal"{% endif %} title="Bearbeiten {{ key }}"> {{ key }}</a><br>
-                                <small class="text-muted">{{ desc }}</small>
-                            </td>
-                            <td style="width: 75%">
-                                {% if service.isSet(key) %}
-                                    {% if type == SettingType.Bool %}
-                                        {{ value ? 'Aktiviert' : 'Deaktiviert' }}
-                                    {% elseif type == SettingType.Money %}
-                                        {% if value is not empty %}{{ (value/100) | format_currency('EUR') }}{% endif %}
+    <form id="settingsForm" method="post" action="{{ path('admin_setting') }}">
+
+    {% for category, keys in groups %}
+        <div class="card mb-3 ssp-card">
+            <div class="card-header ssp-card-header"
+                 data-toggle="collapse"
+                 data-target="#settingsCat_{{ category }}"
+                 aria-expanded="true">
+                <h3 class="mb-0">{{ category }}</h3>
+            </div>
+            <div id="settingsCat_{{ category }}" class="collapse show">
+                <div class="card-body">
+                    <table class="table mb-0">
+                        <tbody>
+                        {% for key in keys %}
+                            {% set f = fields[key] %}
+                            <tr>
+                                <td style="width: 30%">
+                                    <strong>{{ key }}</strong><br>
+                                    <small class="text-muted">{{ f.desc }}</small>
+                                </td>
+                                <td style="width: 55%">
+                                    {% if f.type == constant('App\\Service\\SettingType::File') %}
+                                        {# File: keep the existing modal (VichFileType) #}
+                                        <a href="{{ path('admin_setting_edit', {'key': key}) }}"
+                                           data-toggle="ajaxModal"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Bearbeiten
+                                        </a>
+                                        {% if f.isSet %}
+                                            <small class="text-muted d-block mt-1">
+                                                {{ f.value | striptags | u.truncate(80, '…') }}
+                                            </small>
+                                        {% endif %}
+                                    {% elseif f.type == constant('App\\Service\\SettingType::HTML') %}
+                                        <textarea name="{{ key }}" rows="3" class="form-control">{{ f.value }}</textarea>
+                                    {% elseif f.type == constant('App\\Service\\SettingType::Bool') %}
+                                        <select name="{{ key }}" class="form-control">
+                                            <option value="1" {{ f.value == '1' ? 'selected' }}>{{ 'Aktiviert' }}</option>
+                                            <option value="0" {{ f.value == '0' ? 'selected' }}>{{ 'Deaktiviert' }}</option>
+                                        </select>
+                                    {% elseif f.type == constant('App\\Service\\SettingType::Money') %}
+                                        <input type="number" step="0.01" name="{{ key }}" value="{{ f.displayValue }}" class="form-control">
+                                    {% elseif f.type == constant('App\\Service\\SettingType::Integer') %}
+                                        <input type="number" step="1" name="{{ key }}" value="{{ f.value }}" class="form-control">
+                                    {% elseif f.type == constant('App\\Service\\SettingType::URL') %}
+                                        <input type="url" name="{{ key }}" value="{{ f.value }}" class="form-control">
                                     {% else %}
-                                        {{ value | striptags | u.truncate(100, '...', false) | raw }}
+                                        <input type="text" name="{{ key }}" value="{{ f.value }}" class="form-control">
                                     {% endif %}
-                                {% else %}
-                                    <p class="text-disabled">(nicht gesetzt)</p>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td style="width: 15%" class="text-right">
+                                    <button type="submit" name="delete_{{ key }}" class="btn btn-sm btn-danger">Löschen</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     {% endfor %}
+
+    <hr>
+    <div class="d-flex justify-content-end">
+        <button type="submit" name="save" class="btn btn-primary btn-lg ssp-btn-primary">Speichern</button>
+    </div>
+    </form>
 {% endblock %}

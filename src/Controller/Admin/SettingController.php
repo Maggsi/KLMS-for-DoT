@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,27 +32,86 @@ class SettingController extends AbstractController
         $this->service = $service;
     }
 
-    #[Route(path: '/', name: '', methods: ['GET'])]
-    public function index(): Response
+    #[Route(path: '/', name: '', methods: ['GET', 'POST'])]
+    public function index(Request $request): Response
     {
-        $k = [];
-        $k[''] = [];
+        // Group keys by category (first segment before '.')
+        $groups = [];
         foreach (SettingService::getKeys() as $key) {
-            $array = explode('.', (string) $key, 2);
-            if (sizeof($array) == 1) {
-                $k[''][] = $array[0];
-            } else {
-                $k[$array[0]][] = $key;
-            }
+            $parts = explode('.', (string) $key, 2);
+            $groups[$parts[0]][] = $key;
         }
-        if (empty($k[''])) {
-            unset($k['']);
+
+        if ($request->isMethod('POST')) {
+            // Handle per-key delete buttons (pressing one submits the whole form,
+            // so the deleted key must be excluded from the batch to avoid re-creation)
+            $deletedKeys = [];
+            // The delete button name "delete_KEY" (flat, no brackets) parses as a scalar
+            // in $_POST, so we read it via has('delete_' . $key).
+            foreach (SettingService::getKeys() as $key) {
+                if ($request->request->has('delete_' . $key)) {
+                    $this->service->deleteKey($key);
+                    $deletedKeys[$key] = true;
+                }
+            }
+
+            // Save all text values (file-type keys via the modal; skip deleted keys)
+            $batch = [];
+            foreach (SettingService::getKeys() as $key) {
+                $type = SettingService::getType($key);
+                if ($type === SettingType::File) {
+                    continue;
+                }
+                if (isset($deletedKeys[$key])) {
+                    continue;
+                }
+                if (!$request->request->has($key)) {
+                    continue;
+                }
+                $batch[$key] = $this->normalizeSettingValue($type, $request->request->get($key));
+            }
+            $this->service->setSettingsBatch($batch);
+
+            // Flush any pending file lifecycle callbacks (VichFileType)
+            $this->service->flushAll();
+
+            $this->addFlash('success', 'Einstellungen gespeichert.');
+            return $this->redirectToRoute('admin_setting');
+        }
+
+        // Build field descriptors for rendering (dotted name attributes; Symfony 7.4
+        // forbids dots in form field names, so the fields are rendered manually).
+        $fields = [];
+        foreach (SettingService::getKeys() as $key) {
+            $type = SettingService::getType($key);
+            $value = $this->service->get($key);
+            $fields[$key] = [
+                'type' => $type,
+                'desc' => SettingService::getDescription($key),
+                'isSet' => $this->service->isSet($key),
+                'value' => $value,
+                'displayValue' => $type === SettingType::Money ? ((string) $value) / 100 : $value,
+            ];
         }
 
         return $this->render('admin/settings/index.html.twig', [
-            'keys' => $k,
+            'groups' => $groups,
+            'fields' => $fields,
             'service' => $this->service,
         ]);
+    }
+
+    /**
+     * Convert a raw form value (view representation) to the stored text representation.
+     * Money is submitted in euros and stored as integer cents; everything else as-is.
+     */
+    private function normalizeSettingValue(?SettingType $type, $raw): string
+    {
+        return match ($type) {
+            SettingType::Money => (string) round(((float) $raw) * 100),
+            SettingType::Integer => (string) intval($raw),
+            default => (string) $raw,
+        };
     }
 
     #[Route(path: '/edit', name: '_edit', methods: ['GET', 'POST'])]

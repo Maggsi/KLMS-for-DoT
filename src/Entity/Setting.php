@@ -35,6 +35,9 @@ class Setting
     #[UploadableField(mapping: 'setting', fileNameProperty: 'text')]
     private ?File $file = null;
 
+    // Plain flag used by VichFileType when allow_delete: true (not a DB-mapped / uploadable field)
+    private ?bool $deleteFile = null;
+
     public function setFile(File $file = null): void
     {
         $this->file = $file;
@@ -47,6 +50,18 @@ class Setting
     public function getFile(): ?UploadedFile
     {
         return $this->file;
+    }
+
+    public function setDeleteFile(?bool $deleteFile): self
+    {
+        $this->deleteFile = $deleteFile;
+
+        return $this;
+    }
+
+    public function getDeleteFile(): ?bool
+    {
+        return $this->deleteFile;
     }
 
     public function __construct(string $key)
