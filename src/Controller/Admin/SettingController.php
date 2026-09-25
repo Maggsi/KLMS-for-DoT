@@ -90,7 +90,7 @@ class SettingController extends AbstractController
                 'desc' => SettingService::getDescription($key),
                 'isSet' => $this->service->isSet($key),
                 'value' => $value,
-                'displayValue' => $type === SettingType::Money ? ((string) $value) / 100 : $value,
+                'displayValue' => $type === SettingType::Money ? (empty((string) $value) ? '0' : ((string) $value) / 100) : $value,
             ];
         }
 
