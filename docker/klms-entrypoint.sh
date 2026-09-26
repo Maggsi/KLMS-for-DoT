@@ -8,5 +8,5 @@
 # image ships NO php-fpm binary (and its socket would be :9000, not :8095).
 # The built-in server IS the web tier here (test env; see README for the prod path).
 
-php -S 0.0.0.0:8094 -t /app/public /app/public/index.php &
+php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php &
 exec php bin/console messenger:consume async --time-limit=3600

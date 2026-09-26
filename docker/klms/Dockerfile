@@ -32,6 +32,7 @@ RUN mkdir -p public/images/news public/images/user public/images/site \
 EXPOSE 8094
 
 COPY docker/klms-entrypoint.sh /klms-entrypoint.sh
+COPY docker/klms-router.php /app/docker/klms-router.php
 RUN chmod +x /klms-entrypoint.sh
 
 ENTRYPOINT ["/klms-entrypoint.sh"]

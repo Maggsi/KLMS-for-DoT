@@ -17,4 +17,7 @@ RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
 EXPOSE 8095
 
 # IDM has no worker; the PHP built-in server is the web tier (php:8.4-cli has no php-fpm).
-CMD ["sh", "-c", "php -S 0.0.0.0:8095 -t /app/public /app/public/index.php"]
+# The router (from the KLMS worktree's docker/ dir) serves static files natively
+# and forwards the rest to the front controller.
+COPY docker/idm-router.php /idm-router.php
+CMD ["sh", "-c", "php -S 0.0.0.0:8095 -t /app/public /idm-router.php"]
