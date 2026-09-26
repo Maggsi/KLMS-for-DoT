@@ -1,5 +1,8 @@
 @use 'helper/variables' as vars;
 
+// NOTE: $surface forwarding was dropped — forwarding non-Bootstrap vars through
+// @forward ... with() breaks the build; ssp-theme reads vars.$surface-* directly.
+
 @forward '~bootstrap' with (
   $body-bg: vars.$body-bg,
   $body-color: vars.$body-color,

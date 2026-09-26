@@ -43,39 +43,42 @@ class SettingController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            // Handle per-key delete buttons (pressing one submits the whole form,
-            // so the deleted key must be excluded from the batch to avoid re-creation)
+            // Bracket-named fields (setting[KEY] / delete[KEY]) survive native PHP
+            // parsing (dotted top-level keys are mangled to underscores).
+            // Read via all() — InputBag::get() throws on non-scalar (array) values.
+            $all = $request->request->all();
             $deletedKeys = [];
-            // The delete button name "delete_KEY" (flat, no brackets) parses as a scalar
-            // in $_POST, so we read it via has('delete_' . $key).
-            foreach (SettingService::getKeys() as $key) {
-                if ($request->request->has('delete_' . $key)) {
-                    $this->service->deleteKey($key);
-                    $deletedKeys[$key] = true;
+            $deleteArr = $all['delete'] ?? null;
+            if (is_array($deleteArr)) {
+                foreach (SettingService::getKeys() as $key) {
+                    if (isset($deleteArr[$key])) {
+                        $this->service->deleteKey($key);
+                        $deletedKeys[$key] = true;
+                    }
                 }
             }
-
-            // Save all text values (file-type keys via the modal; skip deleted keys)
             $batch = [];
-            foreach (SettingService::getKeys() as $key) {
-                $type = SettingService::getType($key);
-                if ($type === SettingType::File) {
-                    continue;
+            $settingArr = $all['setting'] ?? null;
+            if (is_array($settingArr)) {
+                foreach (SettingService::getKeys() as $key) {
+                    $type = SettingService::getType($key);
+                    if ($type === SettingType::File) {
+                        continue; // file uploads via the modal
+                    }
+                    if (isset($deletedKeys[$key])) {
+                        continue;
+                    }
+                    if (!isset($settingArr[$key])) {
+                        continue;
+                    }
+                    $batch[$key] = $this->normalizeSettingValue($type, $settingArr[$key]);
                 }
-                if (isset($deletedKeys[$key])) {
-                    continue;
-                }
-                if (!$request->request->has($key)) {
-                    continue;
-                }
-                $batch[$key] = $this->normalizeSettingValue($type, $request->request->get($key));
             }
             $this->service->setSettingsBatch($batch);
-
-            // Flush any pending file lifecycle callbacks (VichFileType)
             $this->service->flushAll();
-
-            $this->addFlash('success', 'Einstellungen gespeichert.');
+            if ($batch || $deletedKeys) {
+                $this->addFlash('success', 'Einstellungen gespeichert.');
+            }
             return $this->redirectToRoute('admin_setting');
         }
 
@@ -108,7 +111,7 @@ class SettingController extends AbstractController
     private function normalizeSettingValue(?SettingType $type, $raw): string
     {
         return match ($type) {
-            SettingType::Money => (string) round(((float) $raw) * 100),
+            SettingType::Money => (string) intval(round(((float) $raw) * 100)),
             SettingType::Integer => (string) intval($raw),
             default => (string) $raw,
         };

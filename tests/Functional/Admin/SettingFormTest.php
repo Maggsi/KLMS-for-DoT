@@ -39,7 +39,7 @@ class SettingFormTest extends DatabaseWebTestCase
             "lan.stats.show",
         ];
         foreach ($expectedKeys as $key) {
-            $this->assertSelectorExists("form#settingsForm [name=\"" . $key . "\"]");
+            $this->assertSelectorExists("form#settingsForm [name=\"setting[" . $key . "]\"]");
         }
 
         // Category collapse headers must be present (at least "site" and "lan")
@@ -52,10 +52,13 @@ class SettingFormTest extends DatabaseWebTestCase
         $this->login("admin@localhost.local");
 
         // Change two values and submit (select the save button to get the form node)
+        // Bracket scheme: values live under the 'setting' array (native-PHP-safe)
         $crawler = $this->client->request("GET", "/admin/setting/");
         $this->client->submit($crawler->selectButton("save")->form(), [
-            "site.title" => "SSP Lan Management System",
-            "site.subtitle" => "Sissi State Punks",
+            "setting" => [
+                "site.title" => "SSP Lan Management System",
+                "site.subtitle" => "Sissi State Punks",
+            ],
         ]);
         $this->assertResponseStatusCodeSame(302);
         $this->client->followRedirect();
@@ -85,11 +88,30 @@ class SettingFormTest extends DatabaseWebTestCase
 
         // Find the delete button for site.keywords and submit its form
         // The delete button is a submit button with name="delete[site.keywords]"
-        $this->client->submit($crawler->selectButton("delete_site.keywords")->form());
+        $this->client->submit($crawler->selectButton("delete[site.keywords]")->form());
         $this->assertResponseStatusCodeSame(302);
 
         $em = $this->client->getContainer()->get("doctrine")->getManager();
         $repo = $em->getRepository(\App\Entity\Setting::class);
         $this->assertNull($repo->findOneBy(["key" => "site.keywords"]));
+    }
+
+    public function testSettingsFormRawPostPersistsValueNativeParsing(): void
+    {
+        $this->databaseTool->loadFixtures([SettingsFixture::class]);
+        $this->login('admin@localhost.local');
+        // Raw POST replicates a real browser body; native PHP parses the
+        // bracketed 'setting' array (NOT the mangled dotted form) — the
+        // path BrowserKit submit() does not exercise.
+        $this->client->request('POST', '/admin/setting/', [
+            'setting' => ['site.title' => 'RawPost-Title-XYZ'],
+            'save' => 'Speichern',
+        ]);
+        $this->assertResponseStatusCodeSame(302);
+        $em = $this->client->getContainer()->get('doctrine')->getManager();
+        $repo = $em->getRepository(\App\Entity\Setting::class);
+        $title = $repo->findOneBy(['key' => 'site.title']);
+        $this->assertNotNull($title);
+        $this->assertEquals('RawPost-Title-XYZ', $title->getText());
     }
 }

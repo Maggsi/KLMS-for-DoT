@@ -38,24 +38,25 @@
                                             </small>
                                         {% endif %}
                                     {% elseif f.type == constant('App\\Service\\SettingType::HTML') %}
-                                        <textarea name="{{ key }}" rows="3" class="form-control">{{ f.value }}</textarea>
+                                        {# HTML renders inline (not via the modal) by decision #}
+                                        <textarea name="setting[{{ key }}]" rows="3" class="form-control">{{ f.value }}</textarea>
                                     {% elseif f.type == constant('App\\Service\\SettingType::Bool') %}
-                                        <select name="{{ key }}" class="form-control">
+                                        <select name="setting[{{ key }}]" class="form-control">
                                             <option value="1" {{ f.value == '1' ? 'selected' }}>{{ 'Aktiviert' }}</option>
                                             <option value="0" {{ f.value == '0' ? 'selected' }}>{{ 'Deaktiviert' }}</option>
                                         </select>
                                     {% elseif f.type == constant('App\\Service\\SettingType::Money') %}
-                                        <input type="number" step="0.01" name="{{ key }}" value="{{ f.displayValue }}" class="form-control">
+                                        <input type="number" step="0.01" name="setting[{{ key }}]" value="{{ f.displayValue }}" class="form-control">
                                     {% elseif f.type == constant('App\\Service\\SettingType::Integer') %}
-                                        <input type="number" step="1" name="{{ key }}" value="{{ f.value }}" class="form-control">
+                                        <input type="number" step="1" name="setting[{{ key }}]" value="{{ f.value }}" class="form-control">
                                     {% elseif f.type == constant('App\\Service\\SettingType::URL') %}
-                                        <input type="url" name="{{ key }}" value="{{ f.value }}" class="form-control">
+                                        <input type="url" name="setting[{{ key }}]" value="{{ f.value }}" class="form-control">
                                     {% else %}
-                                        <input type="text" name="{{ key }}" value="{{ f.value }}" class="form-control">
+                                        <input type="text" name="setting[{{ key }}]" value="{{ f.value }}" class="form-control">
                                     {% endif %}
                                 </td>
                                 <td style="width: 15%" class="text-right">
-                                    <button type="submit" name="delete_{{ key }}" class="btn btn-sm btn-danger">Löschen</button>
+                                    <button type="submit" name="delete[{{ key }}]" class="btn btn-sm btn-danger">Löschen</button>
                                 </td>
                             </tr>
                         {% endfor %}

@@ -138,6 +138,15 @@ body {
   );
 }
 
+// --- Social icon buttons (footer) ---
+// Square icon-only buttons: the .btn-secondary chamfer clip-path cuts the
+// top-right + bottom-left corners off the square, making the centered icon
+// look off-center in the chamfered visual box. Keep these as plain squares.
+.social-btn-group .btn {
+  clip-path: none;
+  border-radius: 0;
+}
+
 // --- Dropdowns ---
 
 .dropdown-menu {
@@ -166,6 +175,26 @@ body {
       background-color: rgba(253, 217, 1, 0.15);
       color: #fdd901;
     }
+  }
+}
+
+// --- Dropdown item readability (login dropdown lives inside #main-nav) ---
+// The fork's helper/navigation.scss ships `#main-nav .dropdown-menu
+// .dropdown-item{color:#212529}` (specificity 1,2,0), which beats the
+// `.dropdown-menu .dropdown-item` rule above (0,2,0) by SPECIFICITY — not
+// source order — so moving @use 'ssp-theme' to the end does NOT fix it.
+// Tie at 1,2,0 and win by source order (this theme is compiled last).
+#main-nav .dropdown-menu .dropdown-item {
+  color: #f3eff6;
+
+  &:hover {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.1);
+  }
+
+  &.active {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.15);
   }
 }
 
