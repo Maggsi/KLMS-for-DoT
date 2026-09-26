@@ -50,11 +50,25 @@ body {
 }
 
 // --- Cards (chamfered, glow on hover) ---
-
+// The chamfer clip-path clips to the card's own box, so it would slice off
+// any child that straddles the card edge — e.g. the .card-avatar (login /
+// profile round cards) whose top half is deliberately positioned above the
+// card top via a negative margin (see helper/card.scss). clip-path clips to
+// the element's own box, so the avatar's protruding top half gets cut off.
+// Exclude those cards from the chamfer so the round avatar renders in full;
+// the hover glow + border + background still apply to every card.
 .card {
   background-color: vars.$surface-container;
   border: 2px solid rgba(72, 71, 76, 0.3);
   border-radius: 0;
+
+  &:hover {
+    border-color: #fdd901;
+    box-shadow: 0 0 20px rgba(253, 217, 1, 0.35);
+  }
+}
+
+.card:not(:has(.card-avatar)) {
   clip-path: polygon(
     0 0,
     calc(100% - 12px) 0,
@@ -63,11 +77,6 @@ body {
     12px 100%,
     0 calc(100% - 12px)
   );
-
-  &:hover {
-    border-color: #fdd901;
-    box-shadow: 0 0 20px rgba(253, 217, 1, 0.35);
-  }
 }
 
 // --- Buttons ---
