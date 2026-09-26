@@ -1,7 +1,7 @@
 <div class="card h-100">
     <img class="card-img-top"
             {% if content.image.name is null %}
-                src="{{ asset('build/images/test_content_pic.jpg') | imagine_filter('card_img') }}"
+                src="{{ asset('build/images/ssp_news_default.jpg') | imagine_filter('card_img') }}"
             {% else %}
                 src="{{ vich_uploader_asset(content, 'imageFile') | imagine_filter('card_img') }}"
             {% endif %}
