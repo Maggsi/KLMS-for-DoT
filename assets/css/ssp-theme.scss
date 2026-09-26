@@ -252,6 +252,64 @@ body {
   }
 }
 
+// Bootstrap 4 renders <input type="file"> as `.form-control-file` (NOT
+// `.form-control`), so the rule above never reached file uploads — the
+// "Browse" button + input box were left as default light browser widgets
+// (white box / gray button) inside the dark modal. Theme them to match.
+.form-control-file {
+  background-color: vars.$surface-high;
+  border: 1px solid #48474c;
+  color: #f3eff6;
+  border-radius: 0;
+
+  &::file-selector-button {
+    background-color: transparent;
+    border: 2px solid #fdd901;
+    color: #fdd901;
+    font-family: 'Iceland', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    margin-right: 0.5rem;
+    border-radius: 0;
+
+    &:hover {
+      background-color: rgba(253, 217, 1, 0.1);
+      color: #fdd901;
+    }
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #fdd901;
+    box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+  }
+}
+
+// Checkbox / radio rows (e.g. the VichFileType "Löschen" delete toggle).
+// The label was black-on-dark (inherited from the removed `.modal-content
+// { color: #000 }`) and the native checkbox was unstyled — theme both.
+.form-check-label {
+  color: #f3eff6;
+}
+
+.form-check-input {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+
+  &:checked {
+    background-color: #fdd901;
+    border-color: #fdd901;
+  }
+
+  &:focus {
+    background-color: vars.$surface-high;
+    border-color: #fdd901;
+    box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+  }
+}
+
 // --- Tables ---
 
 .table {
