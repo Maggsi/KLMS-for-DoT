@@ -9,7 +9,6 @@ FROM php:8.4-cli@sha256:c4723acd1cacb5df50df3b4866730f4bcccde1b5c0948ab49ae615fb
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev libpng-dev libxml2-dev libicu-dev libcurl4-openssl-dev \
         libzip-dev libonig-dev unzip curl \
-        supervisor \
     && docker-php-ext-install pdo_pgsql pgsql gd intl xml mbstring curl zip bcmath \
     && rm -rf /var/lib/apt/lists/*
 
@@ -38,7 +37,10 @@ EXPOSE 8094
 
 COPY docker/klms-entrypoint.sh /klms-entrypoint.sh
 COPY docker/klms-router.php /app/docker/klms-router.php
-COPY docker/klms-supervisord.conf /klms-supervisord.conf
 RUN chmod +x /klms-entrypoint.sh
 
+# One container = one process. Compose runs this image twice with different
+# arguments (see compose.yaml): `web` (php -S) and `worker` (messenger:consume).
+# No CMD default: a bare `docker run` with no arg exits with a usage error,
+# which is the desired behaviour.
 ENTRYPOINT ["/klms-entrypoint.sh"]

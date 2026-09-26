@@ -22,11 +22,11 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 > **Schema bootstrap:** the databases are created by `initdb/setup.sh` (runs on first
 > start). To create the tables, run `doctrine:schema:create` **while the messenger
 > worker is not running** — the worker auto-creates `messenger_messages` at boot and
-> races the command. Easiest: `podman stop klms-dot_klms_1` first, then
+> races the command. Easiest: `podman stop klms-dot_klms-worker_1` first, then
 > `podman run --rm --entrypoint php --network klms-dot_default -e APP_ENV=prod
 > -e APP_SECRET=... -e DATABASE_URL=... klms-dot_klms bin/console
 > doctrine:schema:create --no-interaction` (same for `idm_dot`), then
-> `podman start klms-dot_klms_1`.
+> `podman start klms-dot_klms-worker_1`.
 
 > **Why the IDM image is built separately:** the IDM fork's code is NOT in the KLMS
 > worktree. `podman-compose build` resolves a service's `dockerfile` path *relative to
@@ -36,24 +36,26 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 
 ## Services
 
-| Service  | Port | Purpose                              |
-|----------|------|--------------------------------------|
-| postgres | 5432 | `klms_dot` + `idm_dot` databases     |
-| idm      | 8095 | IDM-for-DoT REST API (internal only) |
-| klms     | 8094 | KLMS-for-SSP web + messenger worker  |
+| Service     | Port | Purpose                                   |
+|-------------|------|-------------------------------------------|
+| postgres    | 5432 | `klms_dot` + `idm_dot` databases         |
+| idm         | 8095 | IDM-for-DoT REST API (internal only)     |
+| klms        | 8094 | KLMS-for-SSP web tier (php -S)          |
+| klms-worker | —    | messenger worker (internal only)         |
 
-The `idm` port is **not** exposed on the host — KLMS reaches it over the internal
-docker network (`http://idm:8095`). Only `klms` (8094) is published.
+The `idm` and `klms-worker` ports are **not** exposed on the host — KLMS reaches
+the IDM over the internal docker network (`http://idm:8095`). Only `klms` (8094)
+is published.
 
-The `klms` container runs **two** processes under `supervisord` (see
-`docker/klms-supervisord.conf`):
-1. `php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php` (web tier)
-2. `php bin/console messenger:consume async --time-limit=3600` (the worker)
+The `klms` image is run as **two containers** (one process per container — no
+supervisor inside the container):
+1. `klms` — `php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php` (web tier)
+2. `klms-worker` — `php bin/console messenger:consume async --time-limit=3600` (the worker)
 
-`supervisord` autorestarts both tiers on crash (a dead web tier no longer masks
-as healthy) and keeps **exactly one** messenger worker running (it only restarts
-after the process exits) — the same "one worker" invariant as the VM's supervisor
-setup, without a second container.
+The worker exits after its `--time-limit`; `restart: unless-stopped` brings a
+fresh one up (the same "one worker" invariant as the VM's supervisor setup).
+Each container has its own healthcheck: the web tier is probed over HTTP, the
+worker over its process list — a dead tier can no longer mask as healthy.
 
 ## DB users (two-tier)
 
