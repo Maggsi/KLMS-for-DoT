@@ -145,6 +145,9 @@ body {
 .social-btn-group .btn {
   clip-path: none;
   border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 // --- Dropdowns ---

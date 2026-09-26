@@ -11,7 +11,7 @@
     ] %}
 
     {% for p in provider %}
-        {% if settings.isSet(p.key) %}
+        {% if settings.isSet(p.key) and settings.get(p.key) is not empty %}
             <a class="btn btn-secondary" title="{{ p.name }}" href="{{ settings.get(p.key) }}" target="_blank">
                 <i class="{{ p.icon }} fa-fw"></i>
             </a>
