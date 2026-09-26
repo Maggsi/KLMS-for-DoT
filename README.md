@@ -1,32 +1,45 @@
-<p align="center"><img src="assets/images/logo-black.png" alt="Logo"></p>
+<p align="center"><img src="assets/images/logo-white.png" alt="Logo"></p>
 
-Repo der Website der **Days of Thunder LAN (DoT-LAN)** – entwickelt auf Basis des [KRRU LAN-Party Management Systems (KLMS)](https://github.com/KRRUg/klms).  
-Dieses Repository dient als Frontend- und Content-Plattform für die aktuelle sowie kommende Veranstaltungsausgabe.
+Repo der Website der **lastLAN** – der LAN-Party von **Sissi State Punks (SSP)**.
+Entwickelt auf Basis des [DoT-LAN-Forks](https://github.com/mrhund/KLMS-for-DoT)
+des [KRRU LAN-Party Management Systems (KLMS)](https://github.com/KRRUg/klms).
+
+> **Wichtig:** Dieses Projekt basiert auf dem DoT-LAN-Fork von KRRU-KLMS.
+> Wir bauen unsere Arbeit auf diesem Fork auf und machen das immer sichtbar —
+> der Ursprung bleibt auch in Zukunft erkennbar und verlinkt.
+
+Dieses Repository dient als Frontend- und Content-Plattform für die aktuelle
+sowie kommende Veranstaltungsausgabe der lastLAN.
 
 ---
 
 ## Über das Projekt
 
-Dieses Repository enthält die Web-Instanz der **DoT-LAN**, einer der traditionsreichsten LAN-Partys in Österreich und deren Verein **LANBUDDYs**.
-Die Seite bietet Informationen rund um das Event, Sponsoren, Turniere, Tickets und aktuelle News.
+Dieses Repository enthält die Web-Instanz der **lastLAN**, der LAN-Party des
+Vereins **Sissi State Punks (SSP)** in Österreich.
+Die Seite bietet Informationen rund um das Event, Sponsoren, Turniere, Tickets
+und aktuelle News.
 
-Die technische Grundlage stammt vom **[KRRU LAN-Party Management System](https://github.com/KRRUg/klms)**, das von uns an das Branding, die Inhalte und Abläufe der DoT-LAN angepasst wurde.
+Die technische Grundlage stammt vom **DoT-LAN-Fork**
+([`mrhund/KLMS-for-DoT`](https://github.com/mrhund/KLMS-for-DoT)) des
+**[KRRU LAN-Party Management Systems](https://github.com/KRRUg/klms)**,
+der von uns an das Branding, die Inhalte und Abläufe der lastLAN angepasst wurde.
 
 ---
 
 ## Features
 
 KLMS bietet:
-- **Event-Präsentation** – News, Sponsoren, Turniere, Teamvorstellungen und mehr, alles in einem modernen Design.  
-- **Anmeldung & Tickets** – Direkte Registrierung und Ticketbuchung für Teilnehmer:innen.  
-- **Sitzplan** – Intuitive Sitzplatzwahl direkt auf der Website.  
-- **Turnierverwaltung** – Übersicht über alle Wettbewerbe, Anmeldungen und Ergebnisse.  
-- **Community & Partnerseiten** – Vorstellung unserer Streamer, Sponsoren und Partner.  
+- **Event-Präsentation** – News, Sponsoren, Turniere, Teamvorstellungen und mehr, alles in einem modernen Design.
+- **Anmeldung & Tickets** – Direkte Registrierung und Ticketbuchung für Teilnehmer:innen.
+- **Sitzplan** – Intuitive Sitzplatzwahl direkt auf der Website.
+- **Turnierverwaltung** – Übersicht über alle Wettbewerbe, Anmeldungen und Ergebnisse.
+- **Community & Partnerseiten** – Vorstellung unserer Streamer, Sponsoren und Partner.
 - **Newsletter-System** – Immer auf dem Laufenden bleiben über aktuelle News und Aktionen.
 
 Es wurde von uns erweitert um:
 
-- **Clan-Discount** – Die Möglichkeit bei Clans einen speziellen Preis zu hinterlegen. 
+- **Clan-Discount** – Die Möglichkeit bei Clans einen speziellen Preis zu hinterlegen.
 - **SumUp Integration** – Zahlungsfunktion via **[SumUp](https://www.sumup.com)**.
 - **Bildergalerie** – Bilder von vergangenen Veranstaltungen anzeigen.
 - **FAQ** – Erstellen und bearbeiten von FAQs inkl. Suche.
@@ -42,24 +55,26 @@ Es wurde von uns erweitert um:
 
 ## Technologie
 
-Basierend auf dem **Symfony Framework** und **Bootstrap**.  
-Daten und Logik stammen aus dem KRRU-Kernsystem.
+Basierend auf dem **Symfony Framework** und **Bootstrap**.
+Daten und Logik stammen aus dem KRRU-Kernsystem (via DoT-LAN-Fork).
 
 ---
 
-## Lizenz
+## Herkunft & Lizenz
 
-Dieses Projekt basiert auf dem [KRRU LAN-Party Management System (KLMS)](https://github.com/KRRU/klms)  
-und steht wie das Original unter der [GPLv3 Lizenz](LICENSE).
+Dieses Projekt basiert auf dem **[KRRU LAN-Party Management System (KLMS)](https://github.com/KRRUg/klms)**
+über den **[DoT-LAN-Fork](https://github.com/mrhund/KLMS-for-DoT)**
+und steht wie die Originalwerke unter der [GPLv3 Lizenz](LICENSE).
 
 ---
 
 ## Mitwirkende
 
-- **LANBUDDYS Verein für Gamingkultur & E-Sport** – Veranstalter der DoT-LAN  
-- **KRRU Team** – Entwickler und Maintainer des ursprünglichen Systems  
-- **Community & Partner** – Unterstützung durch Sponsoren, Streamer und Gamer:innen  
+- **Sissi State Punks (SSP)** – Veranstalter der lastLAN
+- **DoT-LAN / LANBUDDYs** – Basis-Fork, auf dem unsere Arbeit aufbaut
+- **KRRU Team** – Entwickler und Maintainer des ursprünglichen Systems
+- **Community & Partner** – Unterstützung durch Sponsoren, Streamer und Gamer:innen
 
 ---
 
-<p align="center"><em>„LAN on!“ – Wir sehen uns auf der DoT-LAN 2k26!</em></p>
+<p align="center"><em>Wir sehen uns auf der lastLAN!</em></p>
