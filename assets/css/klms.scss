@@ -201,9 +201,10 @@ footer,
   background-color: vars.$bg-dark;
 }
 
-.modal-content {
-  color: #000;
-}
+// NOTE: no `color` override here — modals inherit the body's light text
+// (#f3eff6) so form labels/titles stay readable on the dark ssp-theme surface.
+// (A previous `color: #000` made the "Setting …" title word and the "Löschen"
+// checkbox label black-on-dark and illegible — see issue #4.)
 
 .text-disabled {
   color: bootstrap.$gray-300;
