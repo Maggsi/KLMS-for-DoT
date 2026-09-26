@@ -1,6 +1,6 @@
-# Docker stack for KLMS-for-DoT + IDM-for-DoT
+# Docker stack for KLMS-for-SSP + IDM-for-DoT
 
-A podman-compose stack that runs the KLMS-for-DoT fork (branch `dot-lan`) and the
+A podman-compose stack that runs the KLMS-for-SSP fork (branch `main`) and the
 IDM-for-DoT fork (branch `develop`) as a self-contained test environment.
 
 ## Quick start (local test env on bigboy)
@@ -16,10 +16,17 @@ podman build -f docker/idm/Dockerfile -t klms-dot-idm \
 podman-compose build        # builds klms (context = this worktree)
 
 podman-compose up -d
-podman exec klms-dot_klms_1 php bin/console doctrine:schema:create
-podman exec klms-dot_idm_1  php bin/console doctrine:schema:create
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 ```
+
+> **Schema bootstrap:** the databases are created by `initdb/setup.sh` (runs on first
+> start). To create the tables, run `doctrine:schema:create` **while the messenger
+> worker is not running** — the worker auto-creates `messenger_messages` at boot and
+> races the command. Easiest: `podman stop klms-dot_klms_1` first, then
+> `podman run --rm --entrypoint php --network klms-dot_default -e APP_ENV=prod
+> -e APP_SECRET=... -e DATABASE_URL=... klms-dot_klms bin/console
+> doctrine:schema:create --no-interaction` (same for `idm_dot`), then
+> `podman start klms-dot_klms_1`.
 
 > **Why the IDM image is built separately:** the IDM fork's code is NOT in the KLMS
 > worktree. `podman-compose build` resolves a service's `dockerfile` path *relative to
@@ -32,15 +39,31 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 | Service  | Port | Purpose                              |
 |----------|------|--------------------------------------|
 | postgres | 5432 | `klms_dot` + `idm_dot` databases     |
-| idm      | 8095 | IDM-for-DoT REST API               |
-| klms     | 8094 | KLMS-for-DoT web + messenger worker |
+| idm      | 8095 | IDM-for-DoT REST API (internal only) |
+| klms     | 8094 | KLMS-for-SSP web + messenger worker  |
 
-The `klms` container runs **two** processes via `docker/klms-entrypoint.sh`:
-1. `php -S 0.0.0.0:8094 -t /app/public /app/public/index.php` (web tier)
+The `idm` port is **not** exposed on the host — KLMS reaches it over the internal
+docker network (`http://idm:8095`). Only `klms` (8094) is published.
+
+The `klms` container runs **three** processes via `docker/klms-entrypoint.sh`:
+1. `php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php` (web tier)
 2. `php bin/console messenger:consume async --time-limit=3600` (the worker, foreground)
+3. a **watchdog** that re-starts the web tier if its port stops answering — so a
+   dead web tier does not leave the container "healthy" while serving nothing.
 
 This preserves the "exactly one messenger worker" invariant (same as the VM's supervisor
 setup) without a second container.
+
+## DB users (two-tier)
+
+`initdb/setup.sh` (runs on first start, idempotent) creates, per app:
+- **`<app>_dot`** — the application user. **Owns** the database: read/write on all
+  tables *and* can CREATE runtime tables (e.g. `messenger_messages`). `DATABASE_URL`
+  uses this user.
+- **`<app>_dot_mig`** — the migration user, **all rights**, for `doctrine:schema` /
+  migrations.
+
+Passwords come from the environment (`.env` / compose), never hardcoded in the image.
 
 ## Known quirks
 
