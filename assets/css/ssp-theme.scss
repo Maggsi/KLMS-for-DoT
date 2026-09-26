@@ -151,6 +151,19 @@ body {
   padding: 0.3rem;
 }
 
+// The <i> icon box: .fa-fw forces a 2.5em (30px) width but the box height
+// comes from the button's line-height (24px), so it is a non-square 30x24
+// box and the glyph is left-aligned in it. Make the box a SQUARE (2.5em x
+// 2.5em) flex container so the glyph is centered on both axes.
+.social-btn-group .btn > i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5em;
+  height: 2.5em;
+  line-height: 1;
+}
+
 // --- Dropdowns ---
 
 .dropdown-menu {
