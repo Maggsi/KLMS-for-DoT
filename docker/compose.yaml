@@ -112,7 +112,8 @@ services:
     # No host port: internal-only, like idm.
     command: ["worker"]
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'messenger:consume' || exit 1"]
+      # pgrep is NOT in the php:8.4-cli image, so scan /proc directly.
+      test: ["CMD-SHELL", "for p in /proc/[0-9]*/cmdline; do tr '\\0' ' ' < \"$p\" | grep -q 'messenger:consume' && exit 0; done; exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
