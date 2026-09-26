@@ -45,14 +45,15 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 The `idm` port is **not** exposed on the host — KLMS reaches it over the internal
 docker network (`http://idm:8095`). Only `klms` (8094) is published.
 
-The `klms` container runs **three** processes via `docker/klms-entrypoint.sh`:
+The `klms` container runs **two** processes under `supervisord` (see
+`docker/klms-supervisord.conf`):
 1. `php -S 0.0.0.0:8094 -t /app/public /app/docker/klms-router.php` (web tier)
-2. `php bin/console messenger:consume async --time-limit=3600` (the worker, foreground)
-3. a **watchdog** that re-starts the web tier if its port stops answering — so a
-   dead web tier does not leave the container "healthy" while serving nothing.
+2. `php bin/console messenger:consume async --time-limit=3600` (the worker)
 
-This preserves the "exactly one messenger worker" invariant (same as the VM's supervisor
-setup) without a second container.
+`supervisord` autorestarts both tiers on crash (a dead web tier no longer masks
+as healthy) and keeps **exactly one** messenger worker running (it only restarts
+after the process exits) — the same "one worker" invariant as the VM's supervisor
+setup, without a second container.
 
 ## DB users (two-tier)
 
