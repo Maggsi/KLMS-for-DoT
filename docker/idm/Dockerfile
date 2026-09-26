@@ -2,8 +2,8 @@
 FROM php:8.4-cli
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpq-dev libxml2-dev libicu-dev \
-    && docker-php-ext-install pdo_pgsql pgsql xml mbstring intl \
+        libpq-dev libxml2-dev libicu-dev libonig-dev libzip-dev \
+    && docker-php-ext-install pdo_pgsql pgsql xml mbstring intl zip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -11,10 +11,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
-    && composer dump-autoload --no-dev --classmap-authoritative \
+    && composer dump-autoload --no-dev \
     && mkdir -p var/cache var/log
 
 EXPOSE 8095
 
-# IDM has no worker; php-fpm in background + tail to keep container alive
-CMD ["sh", "-c", "php-fpm -D && tail -f /dev/null"]
+# IDM has no worker; the PHP built-in server is the web tier (php:8.4-cli has no php-fpm).
+CMD ["sh", "-c", "php -S 0.0.0.0:8095 -t /app/public /app/public/index.php"]

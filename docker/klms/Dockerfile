@@ -4,7 +4,7 @@ FROM php:8.4-cli
 # --- system deps for PHP extensions ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev libpng-dev libxml2-dev libicu-dev libcurl4-openssl-dev \
-        libzip-dev libonig-dev \
+        libzip-dev libonig-dev unzip \
     && docker-php-ext-install pdo_pgsql pgsql gd intl xml mbstring curl zip bcmath \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
@@ -18,7 +18,7 @@ WORKDIR /app
 # Bake code (vendor/ built at image build time)
 COPY . .
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
-    && composer dump-autoload --no-dev --classmap-authoritative \
+    && composer dump-autoload --no-dev \
     && mkdir -p var/cache var/log
 
 # Writable dirs (also mounted as volumes at runtime; mkdir so the image works standalone)

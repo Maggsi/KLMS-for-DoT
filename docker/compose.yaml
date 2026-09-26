@@ -17,11 +17,9 @@ services:
       retries: 10
 
   idm:
-    build:
-      # CORRECTION (prompt): the IDM code is NOT in the KLMS worktree.
-      # Build context = the IDM clone; Dockerfile stays under docker/ in the worktree.
-      context: /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
-      dockerfile: docker/idm/Dockerfile
+    # Built with: podman build -f docker/idm/Dockerfile -t klms-dot-idm /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
+    # (podman-compose cannot build with a foreign context — see README)
+    image: klms-dot-idm
     restart: unless-stopped
     depends_on:
       postgres:
