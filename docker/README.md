@@ -43,6 +43,95 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 > context. The `idm` service therefore references a pre-built `klms-dot-idm` image
 > (`image:` instead of `build:`); build it with the `podman build -f` command above.
 
+## First-time setup (clone → admin UI)
+
+A complete, from-scratch run: from a fresh clone to logging into the admin UI and
+configuring from there. (The Quick start above is the short form; this is the full
+walkthrough. Refine freely.)
+
+### 1. Clone
+
+```bash
+git clone https://github.com/Maggsi/KLMS-for-SSP.git && cd KLMS-for-SSP
+# The IDM fork's code is NOT in this repo — clone it separately (build context):
+git clone https://github.com/mrhund/IDM-for-DoT.git
+```
+
+Requires `podman` + `podman-compose` (docker 29 has **no** compose plugin — never
+`docker compose`).
+
+### 2. Build the two images
+
+```bash
+podman build -f docker/idm/Dockerfile -t klms-dot-idm /path/to/IDM-for-DoT
+podman build -f docker/klms/Dockerfile -t klms-dot_klms .
+```
+
+### 3. Set up the environment
+
+```bash
+cd docker/
+./setup.sh
+```
+
+`setup.sh` walks you through `docker/.env` (each value with a one-line explanation +
+a default), writes it (mode 600), and runs `podman-compose up -d`. The values:
+postgres superuser; the **two-tier** DB users (app user owns the DB, migration user
+has all rights); KLMS `APP_SECRET` (signs sessions/CSRF), the **IDM API key + auth**
+(shared secret between the two apps), `MAILER_DSN` (`null://null` = no mail),
+`SITE_BASE_HOST` (what you browse to, e.g. `192.168.0.170:8094`); IDM `APP_SECRET`.
+It derives the two `DATABASE_URL`s from the user/password/db-name you gave.
+(Prefer manual? `cp .env.example .env`, edit, `podman-compose up -d`.)
+
+### 4. First boot (automatic)
+
+On first boot postgres runs `initdb/setup.sh` (DBs + two-tier roles) and **both
+entrypoints auto-create the schema** (0 tables → `doctrine:schema:create` → start).
+A fresh `up -d` just works. Give it a minute, then:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://<SITE_BASE_HOST>/   # → 200
+```
+
+### 5. Create your first admin (the critical step)
+
+A fresh stack has **no users** — the first one is created in the IDM (the identity
+backend), via the IDM console. Two things:
+
+```bash
+# (a) the API key KLMS uses to reach IDM — value MUST MATCH docker/.env KLMS_IDM_APIKEY
+podman exec klms-dot_idm_1 php bin/console app:apikeys:create klms <your-api-key>
+
+# (b) your admin user (--confirmed so it's not stuck in the email-verification flow)
+podman exec klms-dot_idm_1 php bin/console app:user:create you@example.com <password> <nickname> --confirmed
+```
+
+The API key is the linchpin: the same value lives in `docker/.env`
+(`KLMS_IDM_APIKEY`) and must exist in IDM's `api_key` table, or login fails.
+
+### 6. Log in to the admin UI
+
+Open `http://<SITE_BASE_HOST>/` → the login form (field is `username`, i.e. your
+email) → enter the email + password from step 5 → you land in the admin UI at
+`/admin`.
+
+### 7. Configure from there
+
+From the admin UI set the site's real values (title, logo, mail sender if using a
+real `MAILER_DSN`, recaptcha, …) via the Settings (Einstellungen) screens, then do
+normal CMS administration (pages, users, news).
+
+### The two things that bite a first-timer
+1. **The API key must match in both places** (`docker/.env` and IDM) — the #1
+   "login fails" cause.
+2. **The first user is created via the IDM console** — a fresh instance has no
+   self-signup, so `app:user:create` is the only way in.
+
+> **Production note:** this is the bigboy test stack (port 8094, `null://null`
+> mail). For a real deploy, point `SITE_BASE_HOST`/`MAILER_DSN` at production values
+> and put a reverse proxy (nginx/Traefik) in front — swapping `php -S` for
+> `php-fpm` is only an entrypoint + service change.
+
 ## Services
 
 | Service     | Port | Purpose                                   |
