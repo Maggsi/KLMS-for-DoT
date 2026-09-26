@@ -1,0 +1,78 @@
+name: klms-dot
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  idm:
+    build:
+      # CORRECTION (prompt): the IDM code is NOT in the KLMS worktree.
+      # Build context = the IDM clone; Dockerfile stays under docker/ in the worktree.
+      context: /home/max/.hermes/cache/scratch/klms-dot/IDM-for-DoT
+      dockerfile: docker/idm/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${IDM_APP_ENV}
+      APP_SECRET: ${IDM_APP_SECRET}
+      DATABASE_URL: ${IDM_DATABASE_URL}
+    ports:
+      - "8095:8095"
+    volumes:
+      - idm-var:/app/var
+
+  klms:
+    build:
+      context: ..
+      dockerfile: docker/klms/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      idm:
+        condition: service_started
+    environment:
+      APP_ENV: ${KLMS_APP_ENV}
+      APP_SECRET: ${KLMS_APP_SECRET}
+      DATABASE_URL: ${KLMS_DATABASE_URL}
+      KLMS_IDM_URL: ${KLMS_IDM_URL}
+      KLMS_IDM_APIKEY: ${KLMS_IDM_APIKEY}
+      KLMS_IDM_AUTH: ${KLMS_IDM_AUTH}
+      MAILER_DSN: ${KLMS_MAILER_DSN}
+      MAILER_DEFAULT_SENDER_NAME: ${KLMS_MAILER_DEFAULT_SENDER_NAME}
+      MAILER_DEFAULT_SENDER_EMAIL: ${KLMS_MAILER_DEFAULT_SENDER_EMAIL}
+      SITE_BASE_SCHEME: ${KLMS_SITE_BASE_SCHEME}
+      SITE_BASE_HOST: ${KLMS_SITE_BASE_HOST}
+      RECAPTCHA3_ENABLED: ${KLMS_RECAPTCHA3_ENABLED}
+      MESSENGER_TRANSPORT_DSN: ${KLMS_MESSENGER_TRANSPORT_DSN}
+      SENTRY_DSN: ${KLMS_SENTRY_DSN}
+      CARTO_BASEMAP_API_KEY: ${KLMS_CARTO_BASEMAP_API_KEY}
+    ports:
+      - "8094:8094"
+    volumes:
+      - klms-var:/app/var
+      - klms-public:/app/public/images
+      - klms-media:/app/public/media
+      - klms-uploads:/app/public/uploads
+
+volumes:
+  pgdata:
+  idm-var:
+  klms-var:
+  klms-public:
+  klms-media:
+  klms-uploads:
