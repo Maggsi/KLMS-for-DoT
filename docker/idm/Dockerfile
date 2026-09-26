@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM php:8.4-cli
+# Pinned digest (was the floating php:8.4-cli tag) for reproducible builds.
+# Re-pin when you intentionally want a newer PHP:
+#   podman pull php:8.4-cli && podman image inspect php:8.4-cli --format '{{.Digest}}'
+FROM php:8.4-cli@sha256:c4723acd1cacb5df50df3b4866730f4bcccde1b5c0948ab49ae615fb7c6c9a01
 
+# --- system deps for PHP extensions ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev libxml2-dev libicu-dev libonig-dev libzip-dev \
     && docker-php-ext-install pdo_pgsql pgsql xml mbstring intl zip \
@@ -9,15 +13,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
+
+# Bake code (vendor/ built at image build time).
+# .dockerignore keeps tests/, var/ etc. out of the context.
 COPY . .
+# Minimal placeholder .env so Dotenv::loadEnv('/app/.env') finds the file.
+# (Real values are injected at runtime via compose `environment:`.)
+COPY docker/.env.placeholder .env
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
     && composer dump-autoload --no-dev \
     && mkdir -p var/cache var/log
 
 EXPOSE 8095
 
-# IDM has no worker; the PHP built-in server is the web tier (php:8.4-cli has no php-fpm).
-# The router (from the KLMS worktree's docker/ dir) serves static files natively
-# and forwards the rest to the front controller.
+# The PHP built-in server is the web tier (php:8.4-cli ships no php-fpm).
+# The router serves existing static files natively (correct MIME + SRI bytes)
+# and forwards everything else to the front controller — see docker/idm-router.php.
+COPY docker/idm-entrypoint.sh /idm-entrypoint.sh
 COPY docker/idm-router.php /idm-router.php
-CMD ["sh", "-c", "php -S 0.0.0.0:8095 -t /app/public /idm-router.php"]
+RUN chmod +x /idm-entrypoint.sh
+
+ENTRYPOINT ["/idm-entrypoint.sh"]

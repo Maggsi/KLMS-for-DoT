@@ -7,6 +7,12 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Two-tier user passwords, consumed by initdb/setup.sh (run inside this
+      # container on first start).
+      KLMS_DB_PASSWORD: ${KLMS_DB_PASSWORD}
+      KLMS_MIGRATION_DB_PASSWORD: ${KLMS_MIGRATION_DB_PASSWORD}
+      IDM_DB_PASSWORD: ${IDM_DB_PASSWORD}
+      IDM_MIGRATION_DB_PASSWORD: ${IDM_MIGRATION_DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d:ro
@@ -28,8 +34,17 @@ services:
       APP_ENV: ${IDM_APP_ENV}
       APP_SECRET: ${IDM_APP_SECRET}
       DATABASE_URL: ${IDM_DATABASE_URL}
-    ports:
-      - "8095:8095"
+      # Referenced by the config via %env(...)% — must be present (empty is fine).
+      SENTRY_DSN: ${IDM_SENTRY_DSN:-}
+      MAILER_DSN: ${IDM_MAILER_DSN:-null://null}
+    # No host port: KLMS reaches the IDM over the internal docker network
+    # (http://idm:8095, see .env.example KLMS_IDM_URL). Exposing it on the host
+    # was only for local testing.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8095/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     volumes:
       - idm-var:/app/var
 
@@ -61,6 +76,11 @@ services:
       CARTO_BASEMAP_API_KEY: ${KLMS_CARTO_BASEMAP_API_KEY}
     ports:
       - "8094:8094"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:8094/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     volumes:
       - klms-var:/app/var
       - klms-public:/app/public/images

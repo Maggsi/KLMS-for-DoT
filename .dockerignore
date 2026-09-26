@@ -1,0 +1,28 @@
+# Keep the build context small: everything here is NOT sent to the builder.
+# (COPY . . copies the context minus these paths.)
+# NOTE: docker/ is deliberately NOT excluded — the Dockerfile COPYs the
+# entrypoint + router from it, and it's tiny (the real bloat is node_modules).
+
+# node tooling (built on the host, public/build/ is what we need — it is NOT ignored)
+node_modules/
+
+# VCS + tooling
+.git/
+.gitignore
+.dockerignore
+Dockerfile*
+
+# PHP runtime state (mounted as volumes / baked empty at build)
+var/
+
+# Tests — not needed in a runtime image
+tests/
+
+# Local env (never baked in; mounted at runtime)
+.env
+.env.local
+.env.*.local
+
+# Editor/OS noise
+*.swp
+.DS_Store

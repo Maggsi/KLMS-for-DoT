@@ -1,13 +1,15 @@
 # syntax=docker/dockerfile:1
-FROM php:8.4-cli
+# Pinned digest (was the floating php:8.4-cli tag) for reproducible builds.
+# Re-pin when you intentionally want a newer PHP:
+#   podman pull php:8.4-cli && podman image inspect php:8.4-cli --format '{{.Digest}}'
+FROM php:8.4-cli@sha256:c4723acd1cacb5df50df3b4866730f4bcccde1b5c0948ab49ae615fb7c6c9a01
 
 # --- system deps for PHP extensions ---
+# (no xdebug: this is a prod image)
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq-dev libpng-dev libxml2-dev libicu-dev libcurl4-openssl-dev \
-        libzip-dev libonig-dev unzip \
+        libzip-dev libonig-dev unzip curl \
     && docker-php-ext-install pdo_pgsql pgsql gd intl xml mbstring curl zip bcmath \
-    && pecl install xdebug \
-    && docker-php-ext-enable xdebug \
     && rm -rf /var/lib/apt/lists/*
 
 # --- composer ---
@@ -15,8 +17,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Bake code (vendor/ built at image build time)
+# Bake code (vendor/ built at image build time).
+# .dockerignore keeps node_modules/, tests/, var/ etc. out of the context.
 COPY . .
+# Minimal placeholder .env so Dotenv::loadEnv('/app/.env') finds the file.
+# (Real values are injected at runtime via compose `environment:`; the secret
+#  .env stays on the host and is NOT baked in.)
+COPY docker/.env.placeholder .env
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
     && composer dump-autoload --no-dev \
     && mkdir -p var/cache var/log
@@ -25,9 +32,6 @@ RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts \
 RUN mkdir -p public/images/news public/images/user public/images/site \
     public/images/sponsor public/images/gallery public/images/beamernews \
     public/media public/uploads/tourney-rules
-
-# Frontend build is baked in from the build context (see build script, Task 3.1)
-# The build script copies public/build/ into the image BEFORE this step is re-run.
 
 EXPOSE 8094
 
