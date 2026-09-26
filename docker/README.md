@@ -168,9 +168,9 @@ Passwords come from the environment (`.env` / compose), never hardcoded in the i
 
 ## Known quirks
 
-- **`public/media/header_dot_bg.jpg` is not in the repo.** A placeholder is required
-  before `yarn encore prod` will succeed (the SCSS references it). Create a 1×1 JPEG
-  at that path before building the frontend.
+- **`public/media/header_dot_bg.webp` is the mobile hero background** (the `.vid-overlay`
+  background in `assets/css/klms.scss`). It is committed to the repo, so
+  `yarn encore prod` resolves it without a placeholder.
 - **The fork's composer lockfile requires PHP ≥ 8.4** (despite `composer.json` saying
   `^8.3` — the locked doctrine/qr-code deps hard-require `^8.4`). Use the `php:8.4-cli`
   base image.
