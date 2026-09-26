@@ -40,17 +40,14 @@ class User
     private ?string $nickname = null;
 
     #[Groups(['read', 'write'])]
-    #[Assert\NotBlank(normalizer: 'trim')]
-    #[Assert\Length(max: 250, maxMessage: 'The firstname cannot be longer than {{ limit }} characters')]
+        #[Assert\Length(max: 250, maxMessage: 'The firstname cannot be longer than {{ limit }} characters')]
     private ?string $firstname = null;
 
-    #[Assert\NotBlank(normalizer: 'trim')]
-    #[Assert\Length(max: 250, maxMessage: 'The surname cannot be longer than {{ limit }} characters')]
+        #[Assert\Length(max: 250, maxMessage: 'The surname cannot be longer than {{ limit }} characters')]
     #[Groups(['read', 'write'])]
     private ?string $surname = null;
 
-    #[Assert\NotBlank]
-    #[Groups(['read', 'write'])]
+        #[Groups(['read', 'write'])]
     private ?DateTimeInterface $birthdate = null;
 
     #[Assert\Choice(choices: ['m', 'f', 'x'])]

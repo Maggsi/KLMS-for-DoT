@@ -314,4 +314,47 @@ class SettingService
         $this->em->flush();
         $this->cache = null;
     }
+
+    /**
+     * Persist a batch of key => text-value pairs in a single flush.
+     * File-type keys are skipped here (handled by VichFileType on the entity).
+     */
+    public function setSettingsBatch(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            $key = strtolower((string) $key);
+            if (!static::validKey($key)) {
+                $this->logger->error("Invalid key {$key} was to be set in batch");
+                continue;
+            }
+            if (self::getType($key) === SettingType::File) {
+                continue; // file uploads handled by VichFileType
+            }
+            $block = $this->repo->findByKey($key);
+            if (empty($block)) {
+                $block = new Setting($key);
+                $this->em->persist($block);
+            }
+            $block->setText((string) $value);
+        }
+        $this->em->flush();
+        $this->cache = null;
+    }
+
+    /**
+     * Delete a single setting row.
+     */
+    public function deleteKey(string $key): bool
+    {
+        return $this->remove($key);
+    }
+
+    /**
+     * Flush all pending changes (e.g. VichFileType lifecycle callbacks) and reset the cache.
+     */
+    public function flushAll(): void
+    {
+        $this->em->flush();
+        $this->cache = null;
+    }
 }

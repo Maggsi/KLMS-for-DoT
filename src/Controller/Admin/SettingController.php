@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,27 +32,89 @@ class SettingController extends AbstractController
         $this->service = $service;
     }
 
-    #[Route(path: '/', name: '', methods: ['GET'])]
-    public function index(): Response
+    #[Route(path: '/', name: '', methods: ['GET', 'POST'])]
+    public function index(Request $request): Response
     {
-        $k = [];
-        $k[''] = [];
+        // Group keys by category (first segment before '.')
+        $groups = [];
         foreach (SettingService::getKeys() as $key) {
-            $array = explode('.', (string) $key, 2);
-            if (sizeof($array) == 1) {
-                $k[''][] = $array[0];
-            } else {
-                $k[$array[0]][] = $key;
-            }
+            $parts = explode('.', (string) $key, 2);
+            $groups[$parts[0]][] = $key;
         }
-        if (empty($k[''])) {
-            unset($k['']);
+
+        if ($request->isMethod('POST')) {
+            // Bracket-named fields (setting[KEY] / delete[KEY]) survive native PHP
+            // parsing (dotted top-level keys are mangled to underscores).
+            // Read via all() — InputBag::get() throws on non-scalar (array) values.
+            $all = $request->request->all();
+            $deletedKeys = [];
+            $deleteArr = $all['delete'] ?? null;
+            if (is_array($deleteArr)) {
+                foreach (SettingService::getKeys() as $key) {
+                    if (isset($deleteArr[$key])) {
+                        $this->service->deleteKey($key);
+                        $deletedKeys[$key] = true;
+                    }
+                }
+            }
+            $batch = [];
+            $settingArr = $all['setting'] ?? null;
+            if (is_array($settingArr)) {
+                foreach (SettingService::getKeys() as $key) {
+                    $type = SettingService::getType($key);
+                    if ($type === SettingType::File) {
+                        continue; // file uploads via the modal
+                    }
+                    if (isset($deletedKeys[$key])) {
+                        continue;
+                    }
+                    if (!isset($settingArr[$key])) {
+                        continue;
+                    }
+                    $batch[$key] = $this->normalizeSettingValue($type, $settingArr[$key]);
+                }
+            }
+            $this->service->setSettingsBatch($batch);
+            $this->service->flushAll();
+            if ($batch || $deletedKeys) {
+                $this->addFlash('success', 'Einstellungen gespeichert.');
+            }
+            return $this->redirectToRoute('admin_setting');
+        }
+
+        // Build field descriptors for rendering (dotted name attributes; Symfony 7.4
+        // forbids dots in form field names, so the fields are rendered manually).
+        $fields = [];
+        foreach (SettingService::getKeys() as $key) {
+            $type = SettingService::getType($key);
+            $value = $this->service->get($key);
+            $fields[$key] = [
+                'type' => $type,
+                'desc' => SettingService::getDescription($key),
+                'isSet' => $this->service->isSet($key),
+                'value' => $value,
+                'displayValue' => $type === SettingType::Money ? (empty((string) $value) ? '0' : ((string) $value) / 100) : $value,
+            ];
         }
 
         return $this->render('admin/settings/index.html.twig', [
-            'keys' => $k,
+            'groups' => $groups,
+            'fields' => $fields,
             'service' => $this->service,
         ]);
+    }
+
+    /**
+     * Convert a raw form value (view representation) to the stored text representation.
+     * Money is submitted in euros and stored as integer cents; everything else as-is.
+     */
+    private function normalizeSettingValue(?SettingType $type, $raw): string
+    {
+        return match ($type) {
+            SettingType::Money => (string) intval(round(((float) $raw) * 100)),
+            SettingType::Integer => (string) intval($raw),
+            default => (string) $raw,
+        };
     }
 
     #[Route(path: '/edit', name: '_edit', methods: ['GET', 'POST'])]

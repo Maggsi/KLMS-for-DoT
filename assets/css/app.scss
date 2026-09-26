@@ -9,6 +9,8 @@
 @use 'helper/popover';
 @use 'helper/poll';
 @use 'helper/checkin';
+// SSP CI theme — last @use so it wins the cascade over klms + helpers
+@use 'ssp-theme';
 
 // third party CSS (left as @import url to keep generated CSS intact)
 @import url('~@fortawesome/fontawesome-free/css/all.min.css');

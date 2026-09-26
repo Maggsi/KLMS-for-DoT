@@ -1,0 +1,319 @@
+// ============================================================
+// SSP CI Theme — Sissi State Punks
+// Imported at the END of app.scss so it wins the cascade.
+// Brand tokens: ~/ssp-brand/DESIGN.md
+// ============================================================
+
+@use 'sass:map';
+@use 'helper/variables' as vars;
+@use 'bootstrap-site' as bootstrap;
+
+// --- @font-face (self-hosted) ---
+// Relative url() so css-loader resolves it, emits to build/fonts/
+// with a content hash, and rewrites the URL to match.
+
+@font-face {
+  font-family: 'Gudea';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/gudea-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Gudea';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/gudea-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Iceland';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/iceland-400.woff2') format('woff2');
+}
+
+// --- Body ---
+
+body {
+  background-color: vars.$body-bg;
+  color: #f3eff6;
+  // Subtle scanline texture (SSP signature)
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+// --- Cards (chamfered, glow on hover) ---
+
+.card {
+  background-color: vars.$surface-container;
+  border: 2px solid rgba(72, 71, 76, 0.3);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+
+  &:hover {
+    border-color: #fdd901;
+    box-shadow: 0 0 20px rgba(253, 217, 1, 0.35);
+  }
+}
+
+// --- Buttons ---
+
+.btn-primary {
+  background-color: #fdd901;
+  border-color: #fdd901;
+  color: #3d4a00;
+  font-family: 'Iceland', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+
+  &:hover {
+    background-color: #fdd901;
+    color: #3d4a00;
+    box-shadow: 0 0 20px rgba(253, 217, 1, 0.6);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.btn-secondary,
+.btn-outline-primary {
+  background-color: transparent;
+  border: 2px solid #fdd901;
+  color: #fdd901;
+  font-family: 'Iceland', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+
+  &:hover {
+    background-color: rgba(253, 217, 1, 0.1);
+    color: #fdd901;
+  }
+}
+
+.btn-danger {
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% 100%,
+    6px 100%,
+    0 calc(100% - 6px)
+  );
+}
+
+// --- Social icon buttons (footer) ---
+// Square icon-only buttons: the .btn-secondary chamfer clip-path cuts the
+// top-right + bottom-left corners off the square, making the centered icon
+// look off-center in the chamfered visual box. Keep these as plain squares.
+.social-btn-group .btn {
+  clip-path: none;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+}
+
+// The <i> icon box: .fa-fw forces a 2.5em (30px) width but the box height
+// comes from the button's line-height (24px), so it is a non-square 30x24
+// box and the glyph is left-aligned in it. Make the box a SQUARE (2.5em x
+// 2.5em) flex container so the glyph is centered on both axes.
+.social-btn-group .btn > i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  line-height: 1;
+}
+
+// --- Dropdowns ---
+
+.dropdown-menu {
+  background-color: vars.$surface-high;
+  border: 2px solid rgba(72, 71, 76, 0.3);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+
+  .dropdown-item {
+    color: #f3eff6;
+    border-radius: 0;
+
+    &:hover {
+      background-color: rgba(253, 217, 1, 0.1);
+      color: #fdd901;
+    }
+
+    &.active {
+      background-color: rgba(253, 217, 1, 0.15);
+      color: #fdd901;
+    }
+  }
+}
+
+// --- Dropdown item readability (login dropdown lives inside #main-nav) ---
+// The fork's helper/navigation.scss ships `#main-nav .dropdown-menu
+// .dropdown-item{color:#212529}` (specificity 1,2,0), which beats the
+// `.dropdown-menu .dropdown-item` rule above (0,2,0) by SPECIFICITY — not
+// source order — so moving @use 'ssp-theme' to the end does NOT fix it.
+// Tie at 1,2,0 and win by source order (this theme is compiled last).
+#main-nav .dropdown-menu .dropdown-item {
+  color: #f3eff6;
+
+  &:hover {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.1);
+  }
+
+  &.active {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.15);
+  }
+}
+
+// --- Modals ---
+
+.modal-content {
+  background-color: vars.$surface-container;
+  border: 2px solid rgba(72, 71, 76, 0.3);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+}
+
+.modal-header {
+  background-color: vars.$surface-high;
+  border-bottom-color: rgba(72, 71, 76, 0.3);
+}
+
+// --- Form controls ---
+
+.form-control {
+  background-color: vars.$surface-high;
+  border-color: #48474c;
+  color: #f3eff6;
+  border-radius: 0;
+
+  &:focus {
+    background-color: vars.$surface-high;
+    border-color: #fdd901;
+    box-shadow: 0 0 8px rgba(253, 217, 1, 0.3);
+    color: #f3eff6;
+  }
+}
+
+// --- Tables ---
+
+.table {
+  color: #f3eff6;
+
+  th {
+    color: #fdd901;
+    font-family: 'Iceland', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-bottom-color: rgba(72, 71, 76, 0.3);
+  }
+
+  td, th {
+    border-color: rgba(72, 71, 76, 0.15);
+  }
+}
+
+// --- Alerts ---
+
+.alert-success {
+  background-color: rgba(253, 217, 1, 0.1);
+  border-color: rgba(253, 217, 1, 0.3);
+  color: #fdd901;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #ff6e81;
+}
+
+// --- Nav (admin sidebar) ---
+
+.sidebar .nav-link {
+  color: #f3eff6;
+  font-family: 'Iceland', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  &:hover {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.05);
+  }
+
+  &.active {
+    color: #fdd901;
+    background-color: rgba(253, 217, 1, 0.1);
+  }
+}
+
+// --- Progress bars ---
+
+.progress {
+  background-color: vars.$surface-high;
+  border-radius: 0;
+}
+
+// --- HR ---
+
+hr {
+  border-top-color: rgba(72, 71, 76, 0.3);
+}

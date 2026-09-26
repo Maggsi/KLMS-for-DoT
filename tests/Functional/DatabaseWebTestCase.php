@@ -44,11 +44,18 @@ abstract class DatabaseWebTestCase extends WebTestCase
     protected function login(string $user): void
     {
         $csrfToken = $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate');
+        // Stateless CSRF (SameOriginCsrfTokenManager) validates Origin/Referer/Sec-Fetch-Site,
+        // not the submitted token value. Reproduce a browser so the test client can log in.
+        $server = [
+            'HTTP_ORIGIN' => 'http://localhost',
+            'HTTP_REFERER' => 'http://localhost/login',
+            'HTTP_SEC_FETCH_SITE' => 'same-origin',
+        ];
         $this->client->request('POST', '/login', [
             '_csrf_token' => $csrfToken,
             'username' => $user,
             'password' => 'password',
-        ]);
+        ], [], $server);
         if ($this->client->getResponse()->isRedirect()) {
             $this->client->followRedirect();
         }
