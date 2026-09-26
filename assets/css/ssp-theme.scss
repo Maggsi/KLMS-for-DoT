@@ -139,16 +139,28 @@ body {
 }
 
 // --- Social icon buttons (footer) ---
-// Square icon-only buttons: the .btn-secondary chamfer clip-path cuts the
-// top-right + bottom-left corners off the square, making the centered icon
-// look off-center in the chamfered visual box. Keep these as plain squares.
+// Chamfered like the other buttons (top-right + bottom-left cut). The chamfer
+// polygon is point-symmetric about the button's center, so it does NOT shift a
+// centered icon off-center — the earlier "off-center" look came from the
+// non-square 30x24 <i> box (below), which is now a centered square flex box.
+// letter-spacing: 0 — .btn-secondary sets 0.14em, which the icon inherits;
+// letter-spacing adds space AFTER the glyph, shifting it off-center to the
+// left. Icon-only buttons have no text, so the spacing is pure offset.
 .social-btn-group .btn {
-  clip-path: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
   border-radius: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.3rem;
+  letter-spacing: 0;
 }
 
 // The <i> icon box: .fa-fw forces a 2.5em (30px) width but the box height
