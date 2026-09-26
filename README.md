@@ -37,7 +37,7 @@ KLMS bietet:
 - **Community & Partnerseiten** – Vorstellung unserer Streamer, Sponsoren und Partner.
 - **Newsletter-System** – Immer auf dem Laufenden bleiben über aktuelle News und Aktionen.
 
-Es wurde von uns erweitert um:
+**Vom DoT-LAN-Fork erweitert um** (stammen aus dem Basis-Fork, nicht von uns):
 
 - **Clan-Discount** – Die Möglichkeit bei Clans einen speziellen Preis zu hinterlegen.
 - **SumUp Integration** – Zahlungsfunktion via **[SumUp](https://www.sumup.com)**.
@@ -50,6 +50,12 @@ Es wurde von uns erweitert um:
 - **Turnier Gruppenphase** - Gruppenphase vor Single- bzw. Double Elimination Turnieren
 - **User-Map** - Anonymisierte Anzeige der Orte, woher die Personen kommen.
 - **Beamer-News** - Anzeige von News auf der LAN auf dem Beamer mittels RSS-Feed.
+
+**Eigene Erweiterungen (SSP):**
+
+Aktuell sind im `main`-Branch noch keine eigenen Erweiterungen enthalten.
+Ein Kandidat ist die **Containerisierung** (Docker-Stack), die mit dem
+Abschluss des `docker-dot-lan`-Branches in `main` eingehen soll.
 
 ---
 
