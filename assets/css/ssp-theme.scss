@@ -142,6 +142,9 @@ body {
 // Square icon-only buttons: the .btn-secondary chamfer clip-path cuts the
 // top-right + bottom-left corners off the square, making the centered icon
 // look off-center in the chamfered visual box. Keep these as plain squares.
+// letter-spacing: 0 — .btn-secondary sets 0.14em, which the icon inherits;
+// letter-spacing adds space AFTER the glyph, shifting it off-center to the
+// left. Icon-only buttons have no text, so the spacing is pure offset.
 .social-btn-group .btn {
   clip-path: none;
   border-radius: 0;
@@ -149,6 +152,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0.3rem;
+  letter-spacing: 0;
 }
 
 // The <i> icon box: .fa-fw forces a 2.5em (30px) width but the box height
