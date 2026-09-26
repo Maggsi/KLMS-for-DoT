@@ -3,8 +3,18 @@
 A podman-compose stack that runs the KLMS-for-SSP fork (branch `main`) and the
 IDM-for-DoT fork (branch `develop`) as a self-contained test environment.
 
-## Quick start (local test env on bigboy)
+## Quick start
 
+**Option 1 — first-time helper (interactive):**
+```bash
+cd docker/
+./setup.sh
+```
+If `docker/.env` does not exist, `setup.sh` walks you through the values (with a
+brief explanation of each), writes `docker/.env`, then starts the stack. If `.env`
+already exists, it just starts the stack (no questions).
+
+**Option 2 — you already have a `.env`:**
 ```bash
 cd docker/
 cp .env.example .env        # test values are fine for local
@@ -19,14 +29,13 @@ podman-compose up -d
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8094/
 ```
 
-> **Schema bootstrap:** the databases are created by `initdb/setup.sh` (runs on first
-> start). To create the tables, run `doctrine:schema:create` **while the messenger
-> worker is not running** — the worker auto-creates `messenger_messages` at boot and
-> races the command. Easiest: `podman stop klms-dot_klms-worker_1` first, then
-> `podman run --rm --entrypoint php --network klms-dot_default -e APP_ENV=prod
-> -e APP_SECRET=... -e DATABASE_URL=... klms-dot_klms bin/console
-> doctrine:schema:create --no-interaction` (same for `idm_dot`), then
-> `podman start klms-dot_klms-worker_1`.
+> **Schema bootstrap (automatic):** the databases are created by `initdb/setup.sh`
+> (runs on first start). The **tables** are created automatically by the entrypoints
+> (`klms-entrypoint.sh` / `idm-entrypoint.sh`) on first boot: each checks whether the
+> `public` schema has any tables, and if not, runs `doctrine:schema:create` before
+> starting its process. On every later boot the check finds tables and skips it
+> (a no-op — it never touches the `messenger_messages` queue on a running stack).
+> So a fresh `up -d` just works; no manual `schema:create` needed.
 
 > **Why the IDM image is built separately:** the IDM fork's code is NOT in the KLMS
 > worktree. `podman-compose build` resolves a service's `dockerfile` path *relative to
@@ -98,7 +107,7 @@ stack to the VM:
    - `KLMS_MAILER_DSN` → copy from the VM's existing `/var/www/klms-dot/.env.local`
    - `KLMS_IDM_APIKEY` / `KLMS_IDM_AUTH` → from the VM's `.env.local`
 3. Build both images (see Quick start), `podman-compose up -d`.
-4. Run `doctrine:schema:create` on both (first run only).
+4. The schema is created automatically on first boot (see "Schema bootstrap (automatic)"); no manual `schema:create` needed.
 5. Point Traefik at the container port (or a reverse proxy on the VM).
 
 > **Postgres init scripts only run on first start** (empty `pgdata` volume). To re-init
